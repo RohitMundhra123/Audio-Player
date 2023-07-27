@@ -1,7 +1,6 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:soundplayer/utils/routes.dart';
 
 class SoundPlayer extends StatefulWidget {
   final List<SongModel> data; // Assuming 'data' is of type dynamic
@@ -23,7 +22,7 @@ class _SoundPlayerState extends State<SoundPlayer> {
   bool isPlaying = false;
   late QueryArtworkWidget queryArtworkWidget;
   IconData buttonIcon = Icons.play_arrow;
-  int? musicindex;
+  int currentIndex = 0; // Current playing index
   bool showsystem = true;
   bool showbottomappbar = false;
   String? title;
@@ -31,10 +30,18 @@ class _SoundPlayerState extends State<SoundPlayer> {
   @override
   void initState() {
     super.initState();
-    queryart(widget.index);
-    loadDuration(widget.index);
-    getTitle(widget.index);
+    currentIndex = widget.index;
+    queryart(currentIndex);
+    loadDuration(currentIndex);
+    getTitle(currentIndex);
     _listView = buildListView();
+
+    player.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        // Audio completed, play the next index
+        playNext();
+      }
+    });
   }
 
   void queryart(songindex) {
@@ -92,6 +99,42 @@ class _SoundPlayerState extends State<SoundPlayer> {
     );
   }
 
+  Future<bool> _onWillPop() async {
+    return (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Colors.black,
+            title: const Text(
+              'Are you sure?',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: const Text(
+              'Do you want to exit an App',
+              style: TextStyle(color: Colors.grey),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context).pop(false), //<-- SEE HERE
+                child: const Text(
+                  'No',
+                  style: TextStyle(color: Colors.yellow),
+                ),
+              ),
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context).pop(true), // <-- SEE HERE
+                child: const Text(
+                  'Yes',
+                  style: TextStyle(color: Colors.yellow),
+                ),
+              ),
+            ],
+          ),
+        )) ??
+        false;
+  }
+
   void loadDuration(songindex) async {
     final duration = await player.setAudioSource(
         AudioSource.uri(Uri.parse(widget.data[songindex].uri as String)));
@@ -145,11 +188,24 @@ class _SoundPlayerState extends State<SoundPlayer> {
     player.seek(Duration(milliseconds: value.toInt()));
   }
 
- 
+  void playNext() {
+    setState(() {
+      if (currentIndex < widget.data.length - 1) {
+        currentIndex = currentIndex + 1;
+      } else {
+        currentIndex = 0;
+      }
+      queryart(currentIndex);
+      loadDuration(currentIndex);
+      getTitle(currentIndex);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
         appBar: AppBar(
           title: const Text('Sound Player'),
           titleSpacing: 00.0,
@@ -191,23 +247,22 @@ class _SoundPlayerState extends State<SoundPlayer> {
                     child: Container(child: queryArtworkWidget),
                   ),
                   Slider(
-                    activeColor: Colors.green,
-                    inactiveColor: const Color.fromARGB(255, 148, 166, 148),
-                    thumbColor: const Color.fromARGB(255, 30, 175, 35),
-                    overlayColor: const MaterialStatePropertyAll(
-                        Color.fromARGB(255, 7, 255, 36)),
-                    min: 0.0,
-                    max: endslidervalue,
-                    value: slidervalue,
-                    onChanged: (value) {
-                      setState(() {
-                        slidervalue = value;
-                      });
-                    },
-                    onChangeEnd: (value) {
-                      seekTo(value);
-                    },
-                  ),
+                      activeColor: Colors.green,
+                      inactiveColor: const Color.fromARGB(255, 148, 166, 148),
+                      thumbColor: const Color.fromARGB(255, 30, 175, 35),
+                      overlayColor: const MaterialStatePropertyAll(
+                          Color.fromARGB(255, 7, 255, 36)),
+                      min: 0.0,
+                      max: endslidervalue,
+                      value: slidervalue,
+                      onChanged: (value) {
+                        setState(() {
+                          slidervalue = value;
+                        });
+                      },
+                      onChangeEnd: (value) {
+                        seekTo(value);
+                      }),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 05, 20, 5),
                     child: Row(
@@ -241,13 +296,17 @@ class _SoundPlayerState extends State<SoundPlayer> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            seekTo(slidervalue - 10000);
+                            if (slidervalue > 10000) {
+                              seekTo(slidervalue - 10000);
+                            } else {
+                              seekTo(0);
+                            }
                           },
                           style: ButtonStyle(
                             backgroundColor:
                                 MaterialStateProperty.all(Colors.green),
-                            padding:
-                                MaterialStateProperty.all(EdgeInsets.all(14)),
+                            padding: MaterialStateProperty.all(
+                                const EdgeInsets.all(14)),
                           ),
                           child: const Icon(Icons.fast_rewind),
                         ),
@@ -271,7 +330,11 @@ class _SoundPlayerState extends State<SoundPlayer> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            seekTo(slidervalue + 10000);
+                            if (slidervalue < endslidervalue - 10000) {
+                              seekTo(slidervalue + 10000);
+                            } else {
+                              seekTo(endslidervalue - 1000);
+                            }
                           },
                           style: ButtonStyle(
                             backgroundColor:
@@ -291,21 +354,20 @@ class _SoundPlayerState extends State<SoundPlayer> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            if (musicindex == null) {
-                              musicindex = widget.index;
+                            if (currentIndex > 0) {
+                              currentIndex = currentIndex - 1;
                             } else {
-                              musicindex = musicindex! - 1;
+                              currentIndex = widget.data.length - 1;
                             }
-                            debugPrint(musicindex.toString());
-                            queryart(musicindex! - 1);
-                            loadDuration(musicindex! - 1);
-                            getTitle(musicindex! - 1);
+                            queryart(currentIndex);
+                            loadDuration(currentIndex);
+                            getTitle(currentIndex);
                           },
                           style: ButtonStyle(
                             backgroundColor:
                                 MaterialStateProperty.all(Colors.green),
-                            padding:
-                                MaterialStateProperty.all(EdgeInsets.all(14)),
+                            padding: MaterialStateProperty.all(
+                                const EdgeInsets.all(14)),
                           ),
                           child: const Icon(Icons.skip_previous),
                         ),
@@ -314,14 +376,14 @@ class _SoundPlayerState extends State<SoundPlayer> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            if (musicindex == null) {
-                              musicindex = widget.index;
+                            if (currentIndex < widget.data.length - 1) {
+                              currentIndex = currentIndex + 1;
                             } else {
-                              musicindex = musicindex! + 1;
+                              currentIndex = 0;
                             }
-                            queryart(musicindex! + 1);
-                            loadDuration(musicindex! + 1);
-                            getTitle(musicindex! + 1);
+                            queryart(currentIndex);
+                            loadDuration(currentIndex);
+                            getTitle(currentIndex);
                           },
                           style: ButtonStyle(
                             backgroundColor:
@@ -362,6 +424,7 @@ class _SoundPlayerState extends State<SoundPlayer> {
             ),
           ),
         ),
+      ),
     );
   }
 }

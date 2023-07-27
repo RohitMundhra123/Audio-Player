@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
             index: args[1] as int, // Assuming 'index' is of type int
           );
         },
-        MyRoutes.list: (context) => ListAudio()
+        MyRoutes.list: (context) =>const ListAudio()
       },
     );
   }

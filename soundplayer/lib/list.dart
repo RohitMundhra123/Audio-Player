@@ -116,6 +116,7 @@ class _ListAudioState extends State<ListAudio> {
                   ),
                   onTap: () {
                     final data = snapshot.data;
+                    Navigator.pop(context);
                     Navigator.pushNamed(context, MyRoutes.sound,
                         arguments: [data, index]);
                   },
