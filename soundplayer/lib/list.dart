@@ -12,11 +12,14 @@ class ListAudio extends StatefulWidget {
 
 class _ListAudioState extends State<ListAudio> {
   final OnAudioQuery _audioQuery = OnAudioQuery();
+  bool _hasPermission = false;
 
   @override
   void initState() {
     super.initState();
-    permissionStorage();
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      permissionStorage();
+    });
   }
 
   Future<bool> _onWillPop() async {
@@ -29,21 +32,19 @@ class _ListAudioState extends State<ListAudio> {
               style: TextStyle(color: Colors.white),
             ),
             content: const Text(
-              'Do you want to exit an App',
+              'Do you want to exit the app?',
               style: TextStyle(color: Colors.grey),
             ),
             actions: <Widget>[
               TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(false), //<-- SEE HERE
+                onPressed: () => Navigator.of(context).pop(false),
                 child: const Text(
                   'No',
                   style: TextStyle(color: Colors.yellow),
                 ),
               ),
               TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(true), // <-- SEE HERE
+                onPressed: () => Navigator.of(context).pop(true),
                 child: const Text(
                   'Yes',
                   style: TextStyle(color: Colors.yellow),
@@ -74,57 +75,63 @@ class _ListAudioState extends State<ListAudio> {
           elevation: 2.00,
           backgroundColor: Colors.green,
         ),
-        body: FutureBuilder<List<SongModel>>(
-          future: _audioQuery.querySongs(
-              sortType: null,
-              orderType: OrderType.ASC_OR_SMALLER,
-              uriType: UriType.EXTERNAL,
-              ignoreCase: false),
-          builder: (context, snapshot) {
-            if (snapshot.data == null) {
-              return const Center(
+        body: !_hasPermission
+            ? const Center(
                 child: CircularProgressIndicator(),
-              );
-            }
-            if (snapshot.data!.isEmpty) {
-              return const Center(
-                child: Text('no song found'),
-              );
-            }
+              )
+            : FutureBuilder<List<SongModel>>(
+                future: _audioQuery.querySongs(
+                    sortType: null,
+                    orderType: OrderType.ASC_OR_SMALLER,
+                    uriType: UriType.EXTERNAL,
+                    ignoreCase: false),
+                builder: (context, snapshot) {
+                  if (snapshot.data == null) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  if (snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text('No songs found'),
+                    );
+                  }
 
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    snapshot.data![index].title,
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    snapshot.data![index].displayName,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  leading: QueryArtworkWidget(
-                    id: snapshot.data![index].id,
-                    type: ArtworkType.AUDIO,
-                    nullArtworkWidget: const Icon(
-                      Icons.music_note,
-                      size: 30.0,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onTap: () {
-                    final data = snapshot.data;
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, MyRoutes.sound,
-                        arguments: [data, index]);
-                  },
-                );
-              },
-            );
-          },
-        ),
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(
+                          snapshot.data![index].title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          snapshot.data![index].displayName,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        leading: QueryArtworkWidget(
+                          id: snapshot.data![index].id,
+                          type: ArtworkType.AUDIO,
+                          nullArtworkWidget: const Icon(
+                            Icons.music_note,
+                            size: 30.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onTap: () {
+                          final data = snapshot.data;
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, MyRoutes.sound,
+                              arguments: [data, index]);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
       ),
     );
   }
@@ -133,9 +140,55 @@ class _ListAudioState extends State<ListAudio> {
     if (!kIsWeb) {
       bool permissionStatus = await _audioQuery.permissionsStatus();
       if (!permissionStatus) {
-        await _audioQuery.permissionsRequest();
+        // Show a dialog box to request permission
+        // ignore: use_build_context_synchronously
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Colors.black,
+            title: const Text(
+              'Storage Permission',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: const Text(
+              'This app needs access to your local storage to display audio files.',
+              style: TextStyle(color: Colors.grey),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  bool granted = await _audioQuery.permissionsRequest();
+                  if (!granted) {
+                  } else {
+                    setState(() {
+                      _hasPermission = true;
+                    });
+                  }
+                },
+                child: const Text(
+                  'Allow',
+                  style: TextStyle(color: Colors.yellow),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'Deny',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+        );
+      } else {
+        setState(() {
+          _hasPermission = true;
+        });
       }
     }
-    setState(() {});
   }
 }
+

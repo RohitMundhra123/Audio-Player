@@ -18,7 +18,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           scaffoldBackgroundColor: Colors.black,
           appBarTheme: const AppBarTheme(color: Colors.green)),
-          
       initialRoute: MyRoutes.list,
       debugShowCheckedModeBanner: false,
       routes: {
@@ -31,7 +30,7 @@ class MyApp extends StatelessWidget {
             index: args[1] as int, // Assuming 'index' is of type int
           );
         },
-        MyRoutes.list: (context) =>const ListAudio()
+        MyRoutes.list: (context) => const ListAudio()
       },
     );
   }
