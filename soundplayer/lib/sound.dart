@@ -100,6 +100,13 @@ class _SoundPlayerState extends State<SoundPlayer> {
   }
 
   Future<bool> _onWillPop() async {
+  if (showsystem) {
+    setState(() {
+      showsystem = false;
+      showbottomappbar = true;
+    });
+    return false;
+  } else {
     return (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -109,21 +116,19 @@ class _SoundPlayerState extends State<SoundPlayer> {
               style: TextStyle(color: Colors.white),
             ),
             content: const Text(
-              'Do you want to exit an App',
+              'Do you want to exit the App',
               style: TextStyle(color: Colors.grey),
             ),
             actions: <Widget>[
               TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(false), //<-- SEE HERE
+                onPressed: () => Navigator.of(context).pop(false),
                 child: const Text(
                   'No',
                   style: TextStyle(color: Colors.yellow),
                 ),
               ),
               TextButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(true), // <-- SEE HERE
+                onPressed: () => Navigator.of(context).pop(true),
                 child: const Text(
                   'Yes',
                   style: TextStyle(color: Colors.yellow),
@@ -134,6 +139,8 @@ class _SoundPlayerState extends State<SoundPlayer> {
         )) ??
         false;
   }
+}
+
 
   void loadDuration(songindex) async {
     final duration = await player.setAudioSource(
