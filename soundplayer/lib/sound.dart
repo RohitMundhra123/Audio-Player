@@ -100,47 +100,46 @@ class _SoundPlayerState extends State<SoundPlayer> {
   }
 
   Future<bool> _onWillPop() async {
-  if (showsystem) {
-    setState(() {
-      showsystem = false;
-      showbottomappbar = true;
-    });
-    return false;
-  } else {
-    return (await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: Colors.black,
-            title: const Text(
-              'Are you sure?',
-              style: TextStyle(color: Colors.white),
-            ),
-            content: const Text(
-              'Do you want to exit the App',
-              style: TextStyle(color: Colors.grey),
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text(
-                  'No',
-                  style: TextStyle(color: Colors.yellow),
-                ),
+    if (showsystem) {
+      setState(() {
+        showsystem = false;
+        showbottomappbar = true;
+      });
+      return false;
+    } else {
+      return (await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: Colors.black,
+              title: const Text(
+                'Are you sure?',
+                style: TextStyle(color: Colors.white),
               ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  'Yes',
-                  style: TextStyle(color: Colors.yellow),
-                ),
+              content: const Text(
+                'Do you want to exit the App',
+                style: TextStyle(color: Colors.grey),
               ),
-            ],
-          ),
-        )) ??
-        false;
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text(
+                    'No',
+                    style: TextStyle(color: Colors.yellow),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text(
+                    'Yes',
+                    style: TextStyle(color: Colors.yellow),
+                  ),
+                ),
+              ],
+            ),
+          )) ??
+          false;
+    }
   }
-}
-
 
   void loadDuration(songindex) async {
     final duration = await player.setAudioSource(
@@ -228,182 +227,184 @@ class _SoundPlayerState extends State<SoundPlayer> {
           backgroundColor: Colors.green,
         ),
         body: showsystem
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          showsystem = !showsystem;
-                          showbottomappbar = !showbottomappbar;
-                        });
-                      },
-                      style: const ButtonStyle(
-                          backgroundColor:
-                              MaterialStatePropertyAll(Colors.black)),
-                      child: const Icon(
-                        Icons.arrow_drop_down_sharp,
-                        size: 40,
-                      )),
-                  const SizedBox(
-                    height: 50,
-                  ),
-                  SizedBox(
-                    width: 200, // Desired width of the container
-                    height: 200, // Desired height of the container
-                    child: Container(child: queryArtworkWidget),
-                  ),
-                  Slider(
-                      activeColor: Colors.green,
-                      inactiveColor: const Color.fromARGB(255, 148, 166, 148),
-                      thumbColor: const Color.fromARGB(255, 30, 175, 35),
-                      overlayColor: const MaterialStatePropertyAll(
-                          Color.fromARGB(255, 7, 255, 36)),
-                      min: 0.0,
-                      max: endslidervalue,
-                      value: slidervalue,
-                      onChanged: (value) {
-                        setState(() {
-                          slidervalue = value;
-                        });
-                      },
-                      onChangeEnd: (value) {
-                        seekTo(value);
-                      }),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 05, 20, 5),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(def,
-                              style: const TextStyle(
-                                  color: Colors.grey, fontSize: 20)),
-                        ),
-                        Expanded(
-                          child: Text(
-                              textAlign: TextAlign.right,
-                              abc,
-                              style: const TextStyle(
-                                  color: Colors.grey, fontSize: 20)),
-                        ),
-                      ],
+            ? SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            showsystem = !showsystem;
+                            showbottomappbar = !showbottomappbar;
+                          });
+                        },
+                        style: const ButtonStyle(
+                            backgroundColor:
+                                MaterialStatePropertyAll(Colors.black)),
+                        child: const Icon(
+                          Icons.arrow_drop_down_sharp,
+                          size: 40,
+                        )),
+                    const SizedBox(
+                      height: 50,
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 15),
-                    child: Text(
-                      title!,
-                      style: const TextStyle(color: Colors.white),
+                    SizedBox(
+                      width: 200, // Desired width of the container
+                      height: 200, // Desired height of the container
+                      child: Container(child: queryArtworkWidget),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            if (slidervalue > 10000) {
-                              seekTo(slidervalue - 10000);
-                            } else {
-                              seekTo(0);
-                            }
-                          },
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.green),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(14)),
+                    Slider(
+                        activeColor: Colors.green,
+                        inactiveColor: const Color.fromARGB(255, 148, 166, 148),
+                        thumbColor: const Color.fromARGB(255, 30, 175, 35),
+                        overlayColor: const MaterialStatePropertyAll(
+                            Color.fromARGB(255, 7, 255, 36)),
+                        min: 0.0,
+                        max: endslidervalue,
+                        value: slidervalue,
+                        onChanged: (value) {
+                          setState(() {
+                            slidervalue = value;
+                          });
+                        },
+                        onChangeEnd: (value) {
+                          seekTo(value);
+                        }),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 05, 20, 5),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(def,
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 20)),
                           ),
-                          child: const Icon(Icons.fast_rewind),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            toogleSwitch();
-                          },
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.green),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(14)),
+                          Expanded(
+                            child: Text(
+                                textAlign: TextAlign.right,
+                                abc,
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 20)),
                           ),
-                          child: Icon(buttonIcon),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (slidervalue < endslidervalue - 10000) {
-                              seekTo(slidervalue + 10000);
-                            } else {
-                              seekTo(endslidervalue - 1000);
-                            }
-                          },
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.green),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(14)),
-                          ),
-                          child: const Icon(Icons.fast_forward),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            if (currentIndex > 0) {
-                              currentIndex = currentIndex - 1;
-                            } else {
-                              currentIndex = widget.data.length - 1;
-                            }
-                            queryart(currentIndex);
-                            loadDuration(currentIndex);
-                            getTitle(currentIndex);
-                          },
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.green),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(14)),
-                          ),
-                          child: const Icon(Icons.skip_previous),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (currentIndex < widget.data.length - 1) {
-                              currentIndex = currentIndex + 1;
-                            } else {
-                              currentIndex = 0;
-                            }
-                            queryart(currentIndex);
-                            loadDuration(currentIndex);
-                            getTitle(currentIndex);
-                          },
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.green),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(14)),
-                          ),
-                          child: const Icon(Icons.skip_next),
-                        ),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 15),
+                      child: Text(
+                        title!,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              if (slidervalue > 10000) {
+                                seekTo(slidervalue - 10000);
+                              } else {
+                                seekTo(0);
+                              }
+                            },
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.green),
+                              padding: MaterialStateProperty.all(
+                                  const EdgeInsets.all(14)),
+                            ),
+                            child: const Icon(Icons.fast_rewind),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              toogleSwitch();
+                            },
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.green),
+                              padding: MaterialStateProperty.all(
+                                  const EdgeInsets.all(14)),
+                            ),
+                            child: Icon(buttonIcon),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (slidervalue < endslidervalue - 10000) {
+                                seekTo(slidervalue + 10000);
+                              } else {
+                                seekTo(endslidervalue - 1000);
+                              }
+                            },
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.green),
+                              padding: MaterialStateProperty.all(
+                                  const EdgeInsets.all(14)),
+                            ),
+                            child: const Icon(Icons.fast_forward),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              if (currentIndex > 0) {
+                                currentIndex = currentIndex - 1;
+                              } else {
+                                currentIndex = widget.data.length - 1;
+                              }
+                              queryart(currentIndex);
+                              loadDuration(currentIndex);
+                              getTitle(currentIndex);
+                            },
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.green),
+                              padding: MaterialStateProperty.all(
+                                  const EdgeInsets.all(14)),
+                            ),
+                            child: const Icon(Icons.skip_previous),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (currentIndex < widget.data.length - 1) {
+                                currentIndex = currentIndex + 1;
+                              } else {
+                                currentIndex = 0;
+                              }
+                              queryart(currentIndex);
+                              loadDuration(currentIndex);
+                              getTitle(currentIndex);
+                            },
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.green),
+                              padding: MaterialStateProperty.all(
+                                  const EdgeInsets.all(14)),
+                            ),
+                            child: const Icon(Icons.skip_next),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               )
             : _listView!,
         bottomNavigationBar: Visibility(
